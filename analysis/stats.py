@@ -68,7 +68,7 @@ def _group_by_condition(episodes: list[dict]) -> dict[str, list[dict]]:
         cond = ep["condition"]
         key = (
             f"model={cond['model']} "
-            f"bi={cond['boundary_info']} "
+            f"mon={cond.get('monitoring_awareness', 'off')} "
             f"pen={cond['penalty']} "
             f"fr={cond['framing']} "
             f"pm={cond['protocol_mode']} "

@@ -1,5 +1,5 @@
 # protocol/conditions.py — 실험 조건 데이터클래스 + 조건 매트릭스 생성.
-# Spec §5 기반.
+# 설계 v2: boundary_info 축 제거, monitoring_awareness 축 추가.
 
 from __future__ import annotations
 
@@ -10,9 +10,9 @@ from typing import Literal
 
 @dataclass(frozen=True)
 class Condition:
-    """실험 조건 1개. Spec §5 필드 정의."""
+    """실험 조건 1개."""
 
-    boundary_info: Literal["none", "hint", "explicit"]
+    monitoring_awareness: Literal["off", "on"]
     penalty: Literal["none", "score", "terminate"]
     question_style: Literal["open", "direct"] | None
     framing: Literal["explicit", "narrative"]
@@ -22,17 +22,17 @@ class Condition:
 
 def pilot_set(model: str) -> list[Condition]:
     """
-    Phase 3 파일럿용 조건 목록.
-    심문/선언 없이 boundary_info(3) x framing(2) = 6개 조건.
+    파일럿용 조건 목록.
+    심문/선언 없이 monitoring_awareness(2) x framing(2) = 4개 조건.
     penalty=none, question_style=None, protocol_mode=None 고정.
     """
     conditions = []
-    for bi, fr in product(
-        ("none", "hint", "explicit"),
+    for mon, fr in product(
+        ("off", "on"),
         ("explicit", "narrative"),
     ):
         conditions.append(Condition(
-            boundary_info=bi,
+            monitoring_awareness=mon,
             penalty="none",
             question_style=None,
             framing=fr,
@@ -44,20 +44,20 @@ def pilot_set(model: str) -> list[Condition]:
 
 def main_set(models: list[str]) -> list[Condition]:
     """
-    Phase 4 본 실험용 조건 목록 (부분요인설계).
-    Spec §5: 전체 매트릭스 3x3x2x2x3 = 108 조건 x 모델 수.
+    본 실험용 조건 목록.
+    monitoring_awareness(2) x penalty(3) x protocol_mode(3) = 18 조건/모델.
+    framing은 explicit 고정.
+    question_style은 protocol_mode에 따라 자동 결정:
+      - declaration -> None (심문 없음)
+      - interrogation/both -> direct
 
-    부분요인설계:
-      - boundary_info(3) x penalty(3) x protocol_mode(3) = 27 조건/모델
-      - framing은 explicit 고정 (pilot에서 비교 완료)
-      - question_style은 protocol_mode에 따라 자동 결정:
-        - declaration -> None (심문 없음)
-        - interrogation/both -> direct
+    baseline 조건: monitoring_awareness=off, penalty=none
+    대조군: monitoring on 또는 penalty score/terminate
     """
     conditions = []
     for model in models:
-        for bi, pen, pm in product(
-            ("none", "hint", "explicit"),
+        for mon, pen, pm in product(
+            ("off", "on"),
             ("none", "score", "terminate"),
             ("interrogation", "declaration", "both"),
         ):
@@ -68,7 +68,7 @@ def main_set(models: list[str]) -> list[Condition]:
                 qs = "direct"
 
             conditions.append(Condition(
-                boundary_info=bi,
+                monitoring_awareness=mon,
                 penalty=pen,
                 question_style=qs,
                 framing="explicit",

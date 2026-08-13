@@ -44,7 +44,7 @@ def run_experiment(
 
     idx = 0
     for ci, cond in enumerate(conditions):
-        cond_label = f"bi={cond.boundary_info} pen={cond.penalty} q={cond.question_style} fr={cond.framing} pm={cond.protocol_mode}"
+        cond_label = f"mon={cond.monitoring_awareness} pen={cond.penalty} q={cond.question_style} fr={cond.framing} pm={cond.protocol_mode}"
         print(f"--- [{ci+1}/{len(conditions)}] {cond_label} ---")
 
         for ep in range(n_episodes):
@@ -91,7 +91,7 @@ def run_experiment(
 def _run_key(cond: Condition, ep_index: int) -> str:
     """조건 + 에피소드 번호로 고유 키 생성 (resume 판별용)."""
     return (
-        f"{cond.boundary_info}|{cond.penalty}|{cond.question_style}|"
+        f"{cond.monitoring_awareness}|{cond.penalty}|{cond.question_style}|"
         f"{cond.framing}|{cond.protocol_mode}|{cond.model}|ep{ep_index}"
     )
 

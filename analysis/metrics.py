@@ -126,11 +126,15 @@ def compute_episode_metrics(episodes: list[dict]) -> dict:
             "false_confession": false_confessions,
         },
 
-        # 첫 위반 vs 재위반
+        # 첫 위반 vs 재위반 (분리 지표)
         "first_violation": {
-            "episodes_with_first": episodes_with_first,
-            "median_turn": _median(first_violation_turns) if first_violation_turns else None,
-            "repeat_violations": repeat_violations,
+            "first_violation_rate": _rate_with_ci(episodes_with_first, n_episodes),
+            "median_turn_to_first": _median(first_violation_turns) if first_violation_turns else None,
+            "repeat_violation_count": repeat_violations,
+            "repeat_violation_rate_per_turn": _rate_with_ci(
+                repeat_violations,
+                max(total_turns - episodes_with_first, 1),  # 첫 위반 턴 제외한 잔여 턴 대비
+            ) if episodes_with_first > 0 else None,
         },
 
         # 파싱/eval
